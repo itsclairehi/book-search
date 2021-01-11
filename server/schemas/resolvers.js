@@ -13,16 +13,17 @@ const resolvers = {
             }
             throw new AuthenticationError('Not logged in')
         },
-        allUser: async () =>{
+        
+        allUser: async () => {
             const users = await User.find({})
             return users
         }
     },
 
     Mutation: {
-        login: async(parent, {email, password}) => {
+        login: async (parent, { email, password }) => {
             const user = await User.findOne({ email });
-            if(!user) {
+            if (!user) {
                 throw new AuthenticationError('Incorrect credentials')
             }
             const correctPw = await user.isCorrectPassword(password);
@@ -34,32 +35,40 @@ const resolvers = {
             const token = signToken(user)
             return { token, user };
         },
-        createUser: async(parent, args)=> {
+
+        createUser: async (parent, args) => {
             const user = await User.create(args)
             const token = signToken(user)
-           
-            return {token, user};
-        },
-        saveBook: async (parent, {bookId}, context) =>{
-        //check if there's context, which means jwt has been validated, which means user is logged in
-        if (context.user) {
 
-            // const book = await Book.create({ ...args, username: context.user.username });
-            
-            const updatedUser = await User.findOneAndUpdate(
-                { _id: context.user._id },
-                { $addToSet: { savedBooks: bookId } },
-                { new: true }
-              ).populate('savedBooks')
-
-              return updatedUser
-        }
-        throw new AuthenticationError("you need to be logged in")
+            return { token, user };
         },
-        removeBook: async (parent, args, context) => {
-            if(context.user){
-                console.log("delete book selected, add function plz");
-                return context.user
+
+        saveBook: async (parent, args, context) => {
+            //check if there's context, which means jwt has been validated, which means user is logged in
+            if (context.user) {
+
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    {$addToSet: {savedBooks: args.input}},
+                    { new: true, runValidators: true }
+                )
+
+                return updatedUser
+            }
+            throw new AuthenticationError("you need to be logged in")
+        },
+
+        removeBook: async (parent, { bookId }, context) => {
+            if (context.user) {
+                
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $pull: { savedBooks: {bookId: bookId} } },
+                    { new: true }
+                )
+
+
+                return updatedUser
             }
             throw new AuthenticationError("you need to be logged in")
         }
