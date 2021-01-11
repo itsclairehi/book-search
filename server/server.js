@@ -2,26 +2,26 @@ const express = require('express');
 //import Apollo server
 const { ApolloServer }= require('apollo-server-express')
 //import typdefs and resolvers
-// const { typeDefs, resolvers } = require('./schemas')
-// const { authMiddleware } = require('./utils/auth');
+const { typeDefs, resolvers } = require('./schemas')
+const { authMiddleware } = require('./utils/auth');
 const path = require('path');
 //mongoose connection
 const db = require('./config/connection');
-const routes = require('./routes');
+// const routes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 //create new Apollo server and pass in schema data
-// const server = new ApolloServer({
-//   typeDefs,
-//   resolvers,
-//   // jwt token verification before being sent as a header in http request (via context argument in 'me' function within Query resolver)
-//   context: authMiddleware
-// })
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  // jwt token verification before being sent as a header in http request (via context argument in 'me' function within Query resolver)
+  context: authMiddleware
+})
 
 //integrate Apollo server with the Express application as middleware
-// server.applyMiddleware({ app })
+server.applyMiddleware({ app })
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 //delete when trasferred (moves to typeDefs and resolvers)
-app.use(routes);
+// app.use(routes);
 
 db.once('open', () => {
   app.listen(PORT, () => {

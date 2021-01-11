@@ -1,4 +1,4 @@
-const { User, Book } = require('../models')
+const { User } = require('../models')
 const { AuthenticationError } = require('apollo-server-express');
 const { signToken } = require('../utils/auth');
 
@@ -12,6 +12,10 @@ const resolvers = {
                 return userData
             }
             throw new AuthenticationError('Not logged in')
+        },
+        allUser: async () =>{
+            const users = await User.find({})
+            return users
         }
     },
 
@@ -30,14 +34,34 @@ const resolvers = {
             const token = signToken(user)
             return { token, user };
         },
-        createUser: {
-
+        createUser: async(parent, args)=> {
+            const user = await User.create(args)
+            const token = signToken(user)
+           
+            return {token, user};
         },
-        saveBook: {
+        saveBook: async (parent, {bookId}, context) =>{
+        //check if there's context, which means jwt has been validated, which means user is logged in
+        if (context.user) {
 
+            // const book = await Book.create({ ...args, username: context.user.username });
+            
+            const updatedUser = await User.findOneAndUpdate(
+                { _id: context.user._id },
+                { $addToSet: { savedBooks: bookId } },
+                { new: true }
+              ).populate('savedBooks')
+
+              return updatedUser
+        }
+        throw new AuthenticationError("you need to be logged in")
         },
-        deleteBook: {
-
+        removeBook: async (parent, args, context) => {
+            if(context.user){
+                console.log("delete book selected, add function plz");
+                return context.user
+            }
+            throw new AuthenticationError("you need to be logged in")
         }
     }
 

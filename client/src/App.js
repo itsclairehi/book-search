@@ -1,11 +1,33 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+//components/pages
 import SearchBooks from './pages/SearchBooks';
 import SavedBooks from './pages/SavedBooks';
 import Navbar from './components/Navbar';
 
+//apollo
+import { ApolloProvider } from '@apollo/react-hooks';
+import ApolloClient from 'apollo-boost';
+//instantiate apolloclient, connect to graphQL on server end. retrive token
+const client = new ApolloClient({
+  request: operation => {
+    const token = localStorage.getItem('id_token');
+
+    //sets header
+    operation.setContext({
+      headers: {
+        authorization: token ? `Bearer ${token}` : ''
+      }
+    });
+  },
+  uri: '/graphql'
+});
+
+
+
 function App() {
   return (
+    <ApolloProvider client = {client}>
     <Router>
       <>
         <Navbar />
@@ -16,6 +38,7 @@ function App() {
         </Switch>
       </>
     </Router>
+    </ApolloProvider>
   );
 }
 
