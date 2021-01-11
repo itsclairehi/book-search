@@ -7,7 +7,6 @@ const { authMiddleware } = require('./utils/auth');
 const path = require('path');
 //mongoose connection
 const db = require('./config/connection');
-// const routes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,9 +29,6 @@ app.use(express.json());
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
 }
-
-//delete when trasferred (moves to typeDefs and resolvers)
-// app.use(routes);
 
 db.once('open', () => {
   app.listen(PORT, () => {
